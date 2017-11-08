@@ -1,6 +1,9 @@
 
 # Created by https://www.gitignore.io/api/node,macos,windows,sublimetext,visualstudiocode
 
+### generated header file
+settings.h
+
 ### macOS ###
 *.DS_Store
 .AppleDouble
