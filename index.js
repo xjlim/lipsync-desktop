@@ -1,4 +1,6 @@
 const electron = require('electron')
+const dialog = require('electron').dialog
+
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
