@@ -1,0 +1,16 @@
+<html>
+  <script type="text/javascript">
+    const cp = require('child_process')
+    const ipc = require('electron').ipcRenderer
+    const BrowserWindow = require('electron').remote.BrowserWindow
+
+    ipc.on('upload', function (event, arduinoPath, fromWindowId) {
+      // TODO: verify upload
+      // const output = cp.spawnSync(arduinoPath, ['--board', 'adafruit:avr:feather32u4', '--upload', 'Blink.ino'], {encoding: 'utf8', timeout: 15000})
+      const output = cp.spawnSync(arduinoPath, ['--board', 'adafruit:avr:feather32u4', '--verify', 'Blink.ino'], {encoding: 'utf8', timeout: 15000})
+      const fromWindow = BrowserWindow.fromId(fromWindowId)
+      fromWindow.webContents.send('upload-done', output.stdout.trim())
+      window.close()
+    })
+  </script>
+</html>
