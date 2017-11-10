@@ -5,7 +5,7 @@
     const BrowserWindow = require('electron').remote.BrowserWindow
 
     ipc.on('upload', function (event, arduinoPath, fromWindowId) {
-      // TODO: verify upload
+      // TODO: verify upload, figure out timeout threshold, right message to show the user, define for arduino micro as well as feather32u4 board param
       // const output = cp.spawnSync(arduinoPath, ['--board', 'adafruit:avr:feather32u4', '--upload', 'Blink.ino'], {encoding: 'utf8', timeout: 15000})
       const output = cp.spawnSync(arduinoPath, ['--board', 'adafruit:avr:feather32u4', '--verify', 'Blink.ino'], {encoding: 'utf8', timeout: 15000})
       const fromWindow = BrowserWindow.fromId(fromWindowId)
