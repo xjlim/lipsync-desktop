@@ -1,5 +1,6 @@
 // region imports
 const fs = require("fs");
+const path = require("path");
 const cp = require("child_process");
 // endregion
 
@@ -13,6 +14,7 @@ const SETTINGS_CONSTANTS = {
 };
 const FIRMWAREFILE = "Blink.ino";
 const DEFAULT_INTERVAL = 1000;
+const COUNTDOWN_TIME = 20;
 // endregion
 
 // region globals
@@ -35,7 +37,7 @@ const flashButton = document.getElementById("flash-btn");
 flashButton.addEventListener("click", function() {
   const interval = document.getElementById("interval-input").value;
   const output = serialize({ interval });
-  fs.writeFileSync(HEADERFILE, output, "utf8");
+  fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, "utf8");
   flashFlag = true;
   upload();
 });
@@ -134,9 +136,13 @@ function upload() {
   setTimeout(() => {
     const arduinoPath =
       process.platform === "win32" ? ARDUINO_WINDOWS_PATH : ARDUINO_MAC_PATH;
-    const output = cp.spawnSync(arduinoPath, ["--upload", FIRMWAREFILE], {
-      encoding: "utf8"
-    });
+    const output = cp.spawnSync(
+      arduinoPath,
+      ["--upload", path.resolve(__dirname, FIRMWAREFILE)],
+      {
+        encoding: "utf8"
+      }
+    );
     const result = output.stdout || "Fail";
     console.log("[Upload]", result);
     if (flashFlag) {
@@ -153,7 +159,7 @@ function reset() {
 
 function triggerFailSafe() {
   document.getElementById("flash-modal").style.display = "block";
-  let count = 3;
+  let count = COUNTDOWN_TIME;
   document.getElementById(
     "flash-countdown"
   ).innerHTML = `Reverting to previous Blink settings in ${count} seconds`;
@@ -182,7 +188,7 @@ function revertSettings() {
   const intervalInput = document.getElementById("interval-input");
   intervalInput.value = settings.interval;
   const output = serialize({ interval: intervalInput.value });
-  fs.writeFileSync(HEADERFILE, output, "utf8");
+  fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, "utf8");
   flashFlag = false;
   upload();
 }

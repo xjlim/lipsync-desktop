@@ -4,11 +4,21 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder -mw",
+    "postinstall": "install-app-deps"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^1.7.9"
+    "electron": "^1.7.9",
+    "electron-builder": "^19.46.9"
+  },
+  "build": {
+    "appId": "com.electron.lipsync-desktop",
+    "win": {
+      "target": "nsis"
+    }
   }
 }
