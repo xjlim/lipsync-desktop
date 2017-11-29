@@ -10,15 +10,15 @@
 <body>
   <h1>LipSync Demo</h1>
   <p id="instruction">
-  Move your mouse to the top left dot
-</p>
-  <svg id = "container" width="300" height="300">
+    Move your mouse to the top left dot
+  </p>
+  <svg id="calibrate-container" width="300" height="300">
     <rect width="300" height="300" style="fill: #e2e2e2" />
     <rect id="one" x="30" y="30" width="10" height="10" style="fill: #0000ff" />
     <rect id="two" x="260" y="30" width="10" height="10" style="fill: #0000ff" />
     <rect id="four" x="30" y="260" width="10" height="10" style="fill: #0000ff" />
     <rect id="three" x="260" y="260" width="10" height="10" style="fill: #0000ff" />
-
+    <polyline id="polyline" points="" stroke="orange" fill="transparent" stroke-width="3"></polyline>
   </svg>
   <section>
     <h2>Blink</h2>
@@ -35,15 +35,15 @@
     </div>
   </section>
   <div id="flash-modal" class="modal">
-      <div class="modal-content">
-        <div class="center">
-            <p>Keep these Blink settings?</p>
-            <p id="flash-countdown"></p>
-            <button id="revert" class="modal-btn">Revert</button>
-            <button id="keep" class="modal-btn">Keep changes</button>
-        </div>
+    <div class="modal-content">
+      <div class="center">
+        <p>Keep these Blink settings?</p>
+        <p id="flash-countdown"></p>
+        <button id="revert" class="modal-btn">Revert</button>
+        <button id="keep" class="modal-btn">Keep changes</button>
       </div>
     </div>
+  </div>
   <script>
     // You can also require other files to run in this process
     require('./renderer.js')
