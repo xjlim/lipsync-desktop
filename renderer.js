@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const cp = require("child_process");
+const {dialog} = require('electron').remote;
 // endregion
 
 // region constants
@@ -143,9 +144,11 @@ function upload() {
         encoding: "utf8"
       }
     );
-    const result = output.stdout || "Fail";
-    console.log("[Upload]", result);
-    if (flashFlag) {
+    const result = output.stdout;
+    console.log("[Upload]", result || "Upload failed");
+    if (!result) {
+      dialog.showErrorBox("Blink", "Upload failed");
+    } else if (flashFlag) {
       triggerFailSafe();
     }
     blinkContainer.classList.remove("hidden");
