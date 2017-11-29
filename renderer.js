@@ -111,6 +111,11 @@ calibrateContainer.addEventListener("mouseleave", function() {
     flags = 0;
   }
 });
+
+const navButtons = document.querySelectorAll(".nav-btn");
+navButtons.forEach(btn =>
+  btn.addEventListener("click", navButtonsClickHandler)
+);
 // endregion
 
 // region functions
@@ -235,7 +240,6 @@ function mouseEnter2() {
     if (flags === 1) {
       document.getElementById("three").style.fill = "red";
       document.getElementById("two").style.fill = "blue";
-
       document.getElementById("instruction").innerHTML =
         "Now move your mouse to the bottom right dot.";
       flags++;
@@ -287,7 +291,7 @@ function mouseEnter4() {
       document.getElementById("four").style.fill = "blue";
       document.getElementById("one").style.fill = "red";
       document.getElementById("instruction").innerHTML =
-        "Now move your mouse to the top left dot.\n Stop the trace with a tap.";
+        "Now move your mouse to the top left dot.";
       flags++;
     } else {
       start = false;
@@ -310,5 +314,17 @@ function clear() {
   document.getElementById("two").style.fill = "blue";
   document.getElementById("three").style.fill = "blue";
   document.getElementById("four").style.fill = "blue";
+}
+
+function navButtonsClickHandler(event) {
+  navButtons.forEach(btn => btn.classList.remove("is-active"));
+  event.target.classList.add("is-active");
+  const sections = document.querySelectorAll("section");
+  sections.forEach(section => section.classList.remove("is-shown"));
+  if (event.target.innerText === "Home") {
+    document.getElementById("home").classList.add("is-shown");
+  } else {
+    document.getElementById("calibration").classList.add("is-shown");
+  }
 }
 // endregion

@@ -44,3 +44,24 @@
 #calibrate-container {
   cursor: pointer;
 }
+
+section {
+  display: none;
+}
+
+.is-shown {
+  display: block;
+}
+
+.nav-btn {
+  width: 100px;
+  height: 50px;
+  border: 1px solid #e2e2e2;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.is-active {
+  background: #00508a;
+  color: #fff;
+}
