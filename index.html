@@ -3,71 +3,36 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>LipSync Settings</title>
+  <title>LipSync Evolution - Milestone 2 Demo</title>
+  <link rel="stylesheet" href="index.css" />
 </head>
 
 <body>
-  <div id="upload_message"></div>
-  <form>
-    <h1>LipSync Settings</h1>
-    <section>
-      <h2>Pressure sensors</h2>
+  <h1>LipSync Demo</h1>
+  <section>
+    <h2>Blink</h2>
+    <p id="upload-status" class="hidden">Uploading...</p>
+    <div id="blink-container">
       <p>
-        <label for="sip_threshold">
-          <span>Sip threshold: </span>
+        <label for="interval">
+          <span>Interval: </span>
         </label>
-        <input type="text" id="sip_threshold" name="sip_threshold" value="10">
+        <input type="text" id="interval-input" name="interval"> ms
       </p>
-      <p>
-        <label for="puff_threshold">
-          <span>Puff threshold: </span>
-        </label>
-        <input type="text" id="puff_threshold" name="puff_threshold" value="10">
-      </p>
-    </section>
-    <section>
-      <h2>Joystick sensors</h2>
-      <p>
-        <label for="xl_threshold">
-          <span>X low threshold: </span>
-        </label>
-        <input type="text" id="xl_threshold" name="xl_threshold">
-      </p>
-      <p>
-        <label for="yl_threshold">
-          <span>Y low threshold: </span>
-        </label>
-        <input type="text" id="yl_threshold" name="yl_threshold">
-      </p>
-      <p>
-        <label for="xh_threshold">
-          <span>X high threshold: </span>
-        </label>
-        <input type="text" id="xh_threshold" name="xh_threshold">
-      </p>
-      <p>
-        <label for="yh_threshold">
-          <span>Y high threshold: </span>
-        </label>
-        <input type="text" id="yh_threshold" name="yh_threshold">
-      </p>
-    </section>
-    <section>
-      <section>
-        <h2>Cursor speed</h2>
-        <p>
-          <label for="cursor_speed">
-            <span>Speed: </span>
-          </label>
-          <input type="text" id="cursor_speed" name="cursor_speed">
-        </p>
-      </section>
-      <section>
-        <p>
-          <button id="flash_button" type="submit">Flash</button>
-        </p>
-      </section>
-  </form>
+      <button id="flash-btn">Flash</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+  </section>
+  <div id="flash-modal" class="modal">
+      <div class="modal-content">
+        <div class="center">
+            <p>Keep these Blink settings?</p>
+            <p id="flash-countdown"></p>
+            <button id="revert" class="modal-btn">Revert</button>
+            <button id="keep" class="modal-btn">Keep changes</button>
+        </div>
+      </div>
+    </div>
   <script>
     // You can also require other files to run in this process
     require('./renderer.js')

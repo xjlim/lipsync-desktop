@@ -1,45 +1,111 @@
-const fs = require('fs')
-const path = require('path')
-const BrowserWindow = require('electron').remote.BrowserWindow
-const ipc = require('electron').ipcRenderer
+const fs = require("fs");
+const cp = require("child_process");
 
-const HEADERFILE = 'settings.h'
-const ARDUINO_MAC_PATH = '/Applications/Arduino.app/Contents/MacOS/Arduino'
-const ARDUINO_WINDOWS_PATH = 'C:\\Program Files (x86)\\Arduino'
+const HEADERFILE = "settings.h";
+const ARDUINO_MAC_PATH = "/Applications/Arduino.app/Contents/MacOS/Arduino";
+const ARDUINO_WINDOWS_PATH =
+  "C:\\Program Files (x86)\\Arduino\\arduino_debug.exe";
+const SETTINGS_CONSTANTS = {
+  interval: "INTERVAL"
+};
+const FIRMWAREFILE = "Blink.ino";
+const DEFAULT_INTERVAL = 1000;
 
-function serialize(stringObject) {
-  return Object.keys(stringObject).map(key => key + ' ' + stringObject[key] + '\n').join('')
+let timer;
+let settings = {
+  interval: DEFAULT_INTERVAL
+};
+let flashFlag = false;
+
+// start with default
+reset();
+
+const flashButton = document.getElementById("flash-btn");
+flashButton.addEventListener("click", function() {
+  const interval = document.getElementById("interval-input").value;
+  const output = serialize({ interval });
+  fs.writeFileSync(HEADERFILE, output, "utf8");
+  flashFlag = true;
+  upload();
+});
+
+const resetButton = document.getElementById("reset-btn");
+resetButton.addEventListener("click", function() {
+  reset();
+});
+
+const revert = document.getElementById("revert");
+revert.addEventListener("click", function() {
+  closeModal();
+  revertSettings();
+});
+
+const keep = document.getElementById("keep");
+keep.addEventListener("click", function() {
+  storeSettings();
+  closeModal();
+});
+
+function serialize(settings) {
+  return Object.keys(settings)
+    .map(key => `#define ${SETTINGS_CONSTANTS[key]} ${settings[key]}`)
+    .join("");
 }
 
 function upload() {
-  // TODO: verify windows path
-  const arduinoPath = process.platform === 'win32' ? '' : ARDUINO_MAC_PATH
-  const windowID = BrowserWindow.getFocusedWindow().id
-  const invisPath = 'file://' + path.join(__dirname, 'invisible.html')
-  let win = new BrowserWindow({ width: 400, height: 400, show: false })
-  win.loadURL(invisPath)
-
-  win.webContents.on('did-finish-load', function () {
-    win.webContents.send('upload', arduinoPath, windowID)
-  })
+  const blinkContainer = document.getElementById("blink-container");
+  const uploadStatus = document.getElementById("upload-status");
+  blinkContainer.classList.add("hidden");
+  uploadStatus.classList.remove("hidden");
+  // run this after DOM manipulation
+  setTimeout(() => {
+    const arduinoPath =
+      process.platform === "win32" ? ARDUINO_WINDOWS_PATH : ARDUINO_MAC_PATH;
+    const output = cp.spawnSync(arduinoPath, ["--upload", FIRMWAREFILE], {
+      encoding: "utf8"
+    });
+    const result = output.stdout || "Fail";
+    console.log("[Upload]", result);
+    if (flashFlag) {
+      triggerFailSafe();
+    }
+    blinkContainer.classList.remove("hidden");
+    uploadStatus.classList.add("hidden");
+  }, 0);
 }
 
-const flashButton = document.getElementById('flash_button')
-flashButton.addEventListener('click', function (event) {
-  event.preventDefault()
-  const sipThreshold = document.getElementById('sip_threshold').value
-  const puffThreshold = document.getElementById('puff_threshold').value
-  const values = {
-    sipThreshold,
-    puffThreshold
-  }
-  const output = serialize(values)
-  fs.writeFileSync(HEADERFILE, output, 'utf8');
-  console.log(sipThreshold, puffThreshold)
-  upload()
-})
+function reset() {
+  document.getElementById("interval-input").value = DEFAULT_INTERVAL;
+};
 
-ipc.on('upload-done', function (event, result) {
-  const uploadMessage = document.getElementById('upload_message')
-  uploadMessage.textContent = result
-})
+function triggerFailSafe() {
+  document.getElementById("flash-modal").style.display = "block";
+  let count = 3;
+  document.getElementById("flash-countdown").innerHTML = `Reverting to previous Blink settings in ${count} seconds`;
+  timer = setInterval(() => {
+    if (count == 0) {
+      closeModal();
+      revertSettings();
+    } else {
+      document.getElementById("flash-countdown").innerHTML = `Reverting to previous Blink settings in ${--count} seconds`;
+    }
+  }, 1000);
+}
+
+function closeModal() {
+  clearInterval(timer);
+  document.getElementById("flash-modal").style.display = "none";
+}
+
+function storeSettings() {
+  settings.interval = document.getElementById("interval-input").value;
+}
+
+function revertSettings() {
+  const intervalInput =  document.getElementById("interval-input");
+  intervalInput.value = settings.interval;
+  const output = serialize({ interval: intervalInput.value });
+  fs.writeFileSync(HEADERFILE, output, "utf8");
+  flashFlag = false;
+  upload();
+}
