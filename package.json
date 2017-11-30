@@ -19,6 +19,7 @@
     "appId": "com.electron.lipsync-desktop",
     "win": {
       "target": "nsis"
-    }
+    },
+    "asar": false
   }
 }
