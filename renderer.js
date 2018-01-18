@@ -11,17 +11,17 @@ const ARDUINO_MAC_PATH = "/Applications/Arduino.app/Contents/MacOS/Arduino";
 const ARDUINO_WINDOWS_PATH =
   "C:\\Program Files (x86)\\Arduino\\arduino_debug.exe";
 const SETTINGS_CONSTANTS = {
-  interval: "INTERVAL"
+  interval: "DEFAULT_CURSOR_SPEED"
 };
-const FIRMWAREFILE = "Blink.ino";
-const DEFAULT_INTERVAL = 1000;
+const FIRMWAREFILE = "LipSync_Firmware.ino";
+const DEFAULT_CURSOR_SPEED = 30;
 const COUNTDOWN_TIME = 20;
 // endregion
 
 // region globals
 let timer;
 let settings = {
-  interval: DEFAULT_INTERVAL
+  interval: DEFAULT_CURSOR_SPEED
 };
 let flashFlag = false;
 let flags = 0;
@@ -144,9 +144,10 @@ function upload() {
         encoding: "utf8"
       }
     );
+    console.log(output);
     const result = output.stdout;
     console.log("[Upload]", result || "Upload failed");
-    if (!result) {
+    if (output.status === 1) {
       dialog.showErrorBox("Blink", "Upload failed");
     } else if (flashFlag) {
       triggerFailSafe();
@@ -157,7 +158,7 @@ function upload() {
 }
 
 function reset() {
-  document.getElementById("interval-input").value = DEFAULT_INTERVAL;
+  document.getElementById("interval-input").value = DEFAULT_CURSOR_SPEED;
 }
 
 function triggerFailSafe() {
