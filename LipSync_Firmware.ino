@@ -93,6 +93,31 @@
 #include <math.h>
 #include "settings.h"
 
+//***SETTINGS***//
+#ifndef SPEED_COUNTER_SETTING
+#define SPEED_COUNTER_SETTING 4
+#endif
+
+#ifndef SIP_THRESHOLD_SETTING
+#define SIP_THRESHOLD_SETTING 0.5
+#endif
+
+#ifndef PUFF_THRESHOLD_SETTING
+#define PUFF_THRESHOLD_SETTING 0.5
+#endif
+
+#ifndef SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING
+#define SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING 1
+#endif
+
+#ifndef SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING
+#define SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING 5
+#endif
+
+#ifndef SIP_PUFF_SETTING
+#define SIP_PUFF_SETTING 1
+#endif
+
 //***PIN ASSIGNMENTS***//
 
 #define MODE_SELECT 12                            // LipSync Mode Select - USB mode (comm_mode = 0; jumper on) or Bluetooth mode (comm_mode = 1; jumper off) - digital input pin 12 (internally pulled-up)
@@ -123,7 +148,7 @@ float xh_yh_radius, xh_yl_radius, xl_yl_radius, xl_yh_radius;
 float xh_yh, xh_yl, xl_yl, xl_yh;
 int box_delta;                                    // the delta value for the boundary range in all 4 directions about the x,y center
 int cursor_delta;                                 // amount cursor moves in some single or combined direction
-int speed_counter = 4;                            // cursor speed counter
+int speed_counter = SPEED_COUNTER_SETTING;                            // cursor speed counter
 int cursor_click_status = 0;                      // value indicator for click status, ie. tap, back and drag
 int comm_mode = 0;                                // 0 == USB Communications or 1 == Bluetooth Communications
 int config_done;                                  // Binary check of completed Bluetooth configuration
@@ -133,7 +158,7 @@ int poll_counter = 0;                             // cursor poll counter
 int init_counter_A = 0;                           // serial port initialization counter
 int init_counter_B = 0;                           // serial port initialization counter
 
-int default_cursor_speed = DEFAULT_CURSOR_SPEED;
+int default_cursor_speed = 30;
 int delta_cursor_speed = 5;
 
 int cursor_delay;
@@ -202,10 +227,10 @@ void setup() {
 
   //delay(2000);                                    // DO NOT REMOVE DELAY!!!
 
-  //while(!Serial);
+  while(!Serial);
 
-  while(!Serial1);
-  
+  // while(!Serial1);
+
   Joystick_Initialization();                      // home joystick and generate movement threshold boundaries
   delay(10);
   Pressure_Sensor_Initialization();
@@ -220,8 +245,8 @@ void setup() {
   delay(10);
   BT_Configure();                                 // conditionally configure the Bluetooth module [WHAT IF A NEW BT MODULE IS INSTALLED?]
   delay(10);
-  cursor_speed_value();                           // reads saved cursor speed parameter from EEPROM
-  delay(10);
+  // cursor_speed_value();                           // reads saved cursor speed parameter from EEPROM
+  // delay(10);
 
   int exec_time = millis();
   Serial.print("Configuration time: ");
@@ -230,7 +255,7 @@ void setup() {
   blink(4, 250, 3);                               // end initialization visual feedback
 
   Force_Cursor_Display();
-  Display_Feature_List();  
+  Display_Feature_List();
 
   cursor_delay = cursor_params[speed_counter]._delay;
   cursor_factor = cursor_params[speed_counter]._factor;
@@ -393,47 +418,48 @@ void loop() {
 
   cursor_click = (((float)analogRead(PRESSURE_CURSOR)) / 1023.0) * 5.0;
 
-  if (cursor_click < puff_threshold) {
-    while (cursor_click < puff_threshold) {
+  if (is_puffed(cursor_click)) {
+    while (is_puffed(cursor_click)) {
       cursor_click = (((float)analogRead(PRESSURE_CURSOR)) / 1023.0) * 5.0;
       puff_count++;         // NEED TO FIGURE OUT ROUGHLY HOW LONG ONE CYCLE OF THIS WHILE LOOP IS -> COUNT THRESHOLD
       delay(5);
     }
+    Serial.println("Puffed: ");
     Serial.println(puff_count);             //***REMOVE
 
     if (comm_mode == 0) {
-      if (puff_count < 150) {
+      if (puff_count < SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150) {
         if (Mouse.isPressed(MOUSE_LEFT)) {
           Mouse.release(MOUSE_LEFT);
         } else {
           Mouse.click(MOUSE_LEFT);
           delay(5);
         }
-      } else if (puff_count > 150 && puff_count < 750) {
+      } else if (puff_count > SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150 && puff_count < SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         if (Mouse.isPressed(MOUSE_LEFT)) {
           Mouse.release(MOUSE_LEFT);
         } else {
           Mouse.press(MOUSE_LEFT);
           delay(5);
         }
-      } else if (puff_count > 750) {
+      } else if (puff_count > SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         blink(4, 350, 3);   // visual prompt for user to release joystick for automatic calibration of home position
         Manual_Joystick_Home_Calibration();
       }
     } else {
-      if (puff_count < 150) {
+      if (puff_count < SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150) {
         cursor_click_status = 1; //change this stuff to hex
         mouseCommand(cursor_click_status, 0, 0, 0);
         mouseClear();
         cursor_click_status = 0;
         delay(5);
-      } else if (puff_count > 150 && puff_count < 750) {
+      } else if (puff_count > SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150 && puff_count < SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         if (cursor_click_status == 0) {
           cursor_click_status = 1;
         } else if (cursor_click_status == 1) {
           cursor_click_status = 0;
         }
-      } else if (puff_count > 750) {
+      } else if (puff_count > SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         blink(4, 350, 3);     // visual prompt for user to release joystick for automatic calibration of home position
         Manual_Joystick_Home_Calibration();
       }
@@ -442,36 +468,37 @@ void loop() {
     puff_count = 0;
   }
 
-  if (cursor_click > sip_threshold) {
-    while (cursor_click > sip_threshold) {
+  if (is_sipped(cursor_click)) {
+    while (is_sipped(cursor_click)) {
       cursor_click = (((float)analogRead(PRESSURE_CURSOR)) / 1023.0) * 5.0;
       sip_count++;         // NEED TO FIGURE OUT ROUGHLY HOW LONG ONE CYCLE OF THIS WHILE LOOP IS -> COUNT THRESHOLD
       delay(5);
     }
+    Serial.print("Sipped: ");
     Serial.println(sip_count);             //***REMOVE
 
     if (comm_mode == 0) {
-      if (sip_count < 150) {
+      if (sip_count < SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150) {
         Mouse.click(MOUSE_RIGHT);
         delay(5);
-      } else if (sip_count > 150 && sip_count < 750) {
+      } else if (sip_count > SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150 && sip_count < SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         mouseScroll();
         delay(5);
-      } else {
+      } else if (sip_count > SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         sip_secondary();
         delay(5);
       }
     } else {
-      if (sip_count < 150) {
+      if (sip_count < SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150) {
         cursor_click_status = 2;
         mouseCommand(cursor_click_status, 0, 0, 0);
         cursor_click_status = 0;
         mouseClear();
         delay(5);
-      } else if (sip_count > 150 && sip_count < 750) {
+      } else if (sip_count > SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING * 150 && sip_count < SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         mouseScroll();
         delay(5);
-      } else if (sip_count > 750) {
+      } else if (sip_count > SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING * 150) {
         sip_secondary();
         delay(5);
       }
@@ -927,9 +954,18 @@ void Joystick_Initialization(void) {
 void Pressure_Sensor_Initialization(void) {
   float nominal_cursor_value = (((float)analogRead(PRESSURE_CURSOR)) / 1024.0) * 5.0; // Initial neutral pressure transducer analog value [0.0V - 5.0V]
 
-  sip_threshold = nominal_cursor_value + 0.5;    //Create sip pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
+  sip_threshold = nominal_cursor_value + SIP_THRESHOLD_SETTING;    //Create sip pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
 
-  puff_threshold = nominal_cursor_value - 0.5;   //Create puff pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
+  puff_threshold = nominal_cursor_value - PUFF_THRESHOLD_SETTING;   //Create puff pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
+
+  Serial.println(" ");
+  Serial.println(" --- ");
+  Serial.print("puff_threshold: ");
+  Serial.println(puff_threshold);
+  Serial.print("sip_threshold: ");
+  Serial.println(sip_threshold);
+  Serial.println(" --- ");
+  Serial.println(" ");
 }
 
 //***ARDUINO/GENUINO HID MOUSE INITIALIZATION FUNCTION***//
@@ -1240,7 +1276,7 @@ void Set_Default(void) {
     EEPROM.put(0, default_config_setup);
     delay(10);
 
-    default_cursor_setting = 4;
+    default_cursor_setting = SPEED_COUNTER_SETTING;
     EEPROM.put(2, default_cursor_setting);
     delay(10);
 
@@ -1261,4 +1297,20 @@ void Set_Default(void) {
     delay(10);
 
   }
+}
+
+int is_sipped(double cursor_click) {
+  if (SIP_PUFF_SETTING) {
+    return cursor_click > sip_threshold;
+  }
+
+  return cursor_click < puff_threshold;
+}
+
+int is_puffed(double cursor_click) {
+  if (SIP_PUFF_SETTING) {
+    return cursor_click < puff_threshold;
+  }
+
+  return cursor_click > sip_threshold;
 }
