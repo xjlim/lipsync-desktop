@@ -92,6 +92,7 @@
 #include <Mouse.h>
 #include <math.h>
 #include "settings.h"
+#include <FileIO.h>
 
 //***SETTINGS***//
 #ifndef SPEED_COUNTER_SETTING
@@ -227,9 +228,9 @@ void setup() {
 
   //delay(2000);                                    // DO NOT REMOVE DELAY!!!
 
-  while(!Serial);
+  //while(!Serial);
 
-  // while(!Serial1);
+  while(!Serial1);
 
   Joystick_Initialization();                      // home joystick and generate movement threshold boundaries
   delay(10);
@@ -644,9 +645,15 @@ void blink(int num_Blinks, int delay_Blinks, int LED_number ) {
 
 void cursor_speed_value(void) {
   int var;
+
   EEPROM.get(2, var);
   delay(5);
   speed_counter = var;
+  FileSystem.begin();
+File f=FileSystem.open("settings.h");
+f.write("SPEED_COUNTER_SETTING = speed_counter");
+  //f.write(SPEED_COUNTER_SETTING = speed_counter);
+  //FileSystem.close();
 }
 
 void increase_cursor_speed(void) {
