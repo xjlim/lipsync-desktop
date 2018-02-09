@@ -20,8 +20,8 @@ const FIRMWAREFILE = 'LipSync_Firmware.ino';
 const DEFAULT_CURSOR_SPEED = 4;
 const DEFAULT_SIP_THRESHOLD = 2;
 const DEFAULT_PUFF_THRESHOLD = 2;
-const DEFAULT_SHORT_SIPPUFF_DURATION = 2;
-const DEFAULT_VERY_LONG_SIPPUFF_DURATION = 6;
+const DEFAULT_SHORT_SIPPUFF_DURATION = 1;
+const DEFAULT_VERY_LONG_SIPPUFF_DURATION = 5;
 const DEFAULT_REVERSED = 0;
 const initial_settings = {
   speed_counter: DEFAULT_CURSOR_SPEED,
@@ -40,13 +40,89 @@ let flags = 0;
 let success = false;
 let points = [];
 let start = false;
-let saved_settings = initial_settings;
-
-reset();
+let saved_settings = Object.assign({}, initial_settings);
 
 window.$ = window.jQuery = require('jquery');
 $(function() {
-  $('#speed_counter').slider();
+  var speed_counter_handle = $('#speed_counter');
+  $('#speed_counter_slider').slider({
+    create: function() {
+      speed_counter_handle.text($(this).slider('value'));
+    },
+    change: function(event, ui) {
+      speed_counter_handle.text(ui.value);
+    },
+    slide: function(event, ui) {
+      speed_counter_handle.text(ui.value);
+    },
+    min: 0,
+    max: 8,
+    value: 4
+  });
+
+  var sip_threshold_handle = $('#sip_threshold');
+  $('#sip_threshold_slider').slider({
+    create: function() {
+      sip_threshold_handle.text($(this).slider('value'));
+    },
+    change: function(event, ui) {
+      sip_threshold_handle.text(ui.value);
+    },
+    slide: function(event, ui) {
+      sip_threshold_handle.text(ui.value);
+    },
+    min: 1,
+    max: 4,
+    value: 2
+  });
+
+  var puff_threshold_handle = $('#puff_threshold');
+  $('#puff_threshold_slider').slider({
+    create: function() {
+      puff_threshold_handle.text($(this).slider('value'));
+    },
+    change: function(event, ui) {
+      puff_threshold_handle.text(ui.value);
+    },
+    slide: function(event, ui) {
+      puff_threshold_handle.text(ui.value);
+    },
+    min: 1,
+    max: 4,
+    value: 2
+  });
+
+  $('#sippuff_duration_slider').slider({
+    range: true,
+    min: 1,
+    max: 10,
+    values: [1, 5],
+    change: function(event, ui) {
+      if (ui.values[0] === ui.values[1]) {
+        return false;
+      }
+
+      $('#short_sippuff_duration').text(ui.values[0]);
+      $('#very_long_sippuff_duration').text(ui.values[1]);
+    },
+    slide: function(event, ui) {
+      if (ui.values[0] === ui.values[1]) {
+        return false;
+      }
+
+      $('#short_sippuff_duration').text(ui.values[0]);
+      $('#very_long_sippuff_duration').text(ui.values[1]);
+    },
+    create: function() {
+      $('#short_sippuff_duration').text(
+        $('#sippuff_duration_slider').slider('values', 0)
+      );
+      $('#very_long_sippuff_duration').text(
+        $('#sippuff_duration_slider').slider('values', 1)
+      );
+    }
+  });
+  reset(); // done after initializing the sliders
 });
 
 const flashButton = document.getElementById('flash-btn');
@@ -64,7 +140,6 @@ resetButton.addEventListener('click', function() {
 
 const revert = document.getElementById('revert');
 revert.addEventListener('click', function() {
-  console.log('reversed');
   closeModal();
   revertSettings();
 });
@@ -74,44 +149,6 @@ keep.addEventListener('click', function() {
   storeSettings();
   closeModal();
 });
-
-document.getElementById('reversed').addEventListener('change', rsip_puff);
-document
-  .getElementById('speed_counter')
-  .addEventListener('change', update_value);
-document
-  .getElementById('sip_threshold')
-  .addEventListener('change', update_value);
-document
-  .getElementById('puff_threshold')
-  .addEventListener('change', update_value);
-document
-  .getElementById('short_sippuff_duration')
-  .addEventListener('change', update_value);
-document
-  .getElementById('very_long_sippuff_duration')
-  .addEventListener('change', update_value);
-
-function updateDOM() {
-  const settings = getSettings();
-  Object.keys(settings).map(key => {
-    if (key === 'reversed') {
-      return;
-    }
-    if (key === 'sip_threshold' || key === 'puff_threshold') {
-      document.getElementById(`${key}_label`).innerHTML = settings[key] * 4;
-    } else {
-      document.getElementById(`${key}_label`).innerHTML = settings[key];
-    }
-  });
-}
-
-function update_value(event) {
-  const setting = event.target.id;
-  document.getElementById(
-    `${setting}_label`
-  ).innerHTML = document.getElementById(setting).value;
-}
 
 function rsip_puff() {
   var pre_st = document.getElementById('sip_threshold').value;
@@ -124,19 +161,21 @@ function rsip_puff() {
     document.getElementById('sip_threshold').value = pre_pt;
     document.getElementById('puff_threshold').value = pre_st;
   }
-  updateDOM();
 }
 
 function getSettings() {
-  const speed_counter = document.getElementById('speed_counter').value - 1;
-  const sip_threshold = document.getElementById('sip_threshold').value / 4;
-  const puff_threshold = document.getElementById('puff_threshold').value / 4;
-  const short_sippuff_duration = document.getElementById(
-    'short_sippuff_duration'
-  ).value;
-  const very_long_sippuff_duration = document.getElementById(
-    'very_long_sippuff_duration'
-  ).value;
+  $('#speed_counter_slider').slider('value');
+  const speed_counter = $('#speed_counter_slider').slider('value');
+  const sip_threshold = $('#sip_threshold_slider').slider('value') / 4;
+  const puff_threshold = $('#puff_threshold_slider').slider('value') / 4;
+  const short_sippuff_duration = $('#sippuff_duration_slider').slider(
+    'values',
+    0
+  );
+  const very_long_sippuff_duration = $('#sippuff_duration_slider').slider(
+    'values',
+    1
+  );
   const reversed = document.getElementById('reversed').checked ? 0 : 1;
   return {
     speed_counter,
@@ -156,16 +195,12 @@ function setSettings({
   very_long_sippuff_duration,
   reversed
 }) {
-  document.getElementById('speed_counter').value = speed_counter;
-  document.getElementById('sip_threshold').value = sip_threshold;
-  document.getElementById('puff_threshold').value = puff_threshold;
-  document.getElementById(
-    'short_sippuff_duration'
-  ).value = short_sippuff_duration;
-  document.getElementById(
-    'very_long_sippuff_duration'
-  ).value = very_long_sippuff_duration;
-  document.getElementById('reversed').value = reversed;
+  $('#speed_counter_slider').slider('value', speed_counter);
+  $('#sip_threshold_slider').slider('value', sip_threshold);
+  $('#puff_threshold_slider').slider('value', puff_threshold);
+  $('#sippuff_duration_slider').slider('values', 0, short_sippuff_duration);
+  $('#sippuff_duration_slider').slider('values', 1, very_long_sippuff_duration);
+  document.getElementById('reversed').checked = reversed;
 }
 
 function serialize() {
@@ -176,9 +211,9 @@ function serialize() {
 }
 
 function upload() {
-  const blinkContainer = document.getElementById('blink-container');
+  const settingsContainer = document.getElementById('settings-container');
   const uploadStatus = document.getElementById('upload-status');
-  blinkContainer.classList.add('hidden');
+  settingsContainer.classList.add('hidden');
   uploadStatus.classList.remove('hidden');
   // run this after DOM manipulation
   setTimeout(() => {
@@ -195,11 +230,11 @@ function upload() {
     const result = output.stdout;
     console.log('[Upload]', result || 'Upload failed');
     if (output.status === 1) {
-      dialog.showErrorBox('Blink', 'Upload failed');
+      dialog.showErrorBox('Settings', 'Upload failed');
     } else if (flashFlag) {
       triggerFailSafe();
     }
-    blinkContainer.classList.remove('hidden');
+    settingsContainer.classList.remove('hidden');
     uploadStatus.classList.add('hidden');
   }, 0);
 }
@@ -234,13 +269,12 @@ function storeSettings() {
 
 function revertSettings() {
   setSettings(saved_settings);
-  updateDOM();
   const output = serialize();
   fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, 'utf8');
   flashFlag = false;
   upload();
 }
+
 function reset() {
   setSettings(initial_settings);
-  updateDOM();
 }
