@@ -22,20 +22,6 @@
   width: 100%;
 }
 
-.modal-btn {
-  border: 2px solid #fff;
-  background: #00508a;
-  color: #fff;
-  margin: 5px;
-  padding: 5px;
-  height: 25px;
-  float: right;
-}
-
-#revert {
-  background: #0061b0;
-}
-
 .center-50 {
   width: 50%;
   margin: 0 auto;
@@ -133,6 +119,7 @@ label {
 }
 
 .slider {
+  z-index: 1;
   display: inline-block;
   width: 60%;
 }
@@ -161,6 +148,7 @@ section {
   padding: 20px;
 }
 
+#keep,
 #flash-btn {
   color: #fff;
   background: #2196f3;
@@ -171,6 +159,7 @@ section {
   font-size: 1em;
 }
 
+#revert,
 #reset-btn {
   background: #fff;
   color: #2196f3;
@@ -179,6 +168,13 @@ section {
   border: 2px solid #002937;
   border-radius: 4px;
   font-size: 1em;
+}
+
+#keep,
+#revert {
+  font-size: 0.8em;
+  width: 150px;
+  float: right;
 }
 
 button {
