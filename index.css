@@ -152,7 +152,8 @@ input:checked + .slider:before {
 
 .sliderbar {
   -webkit-appearance: none;
-  width: 35%;
+  display: list-item;
+  width: 30%;
   height: 25px;
   background: #d3d3d3;
   outline: none;
