@@ -36,13 +36,14 @@
   background: #0061b0;
 }
 
-.center {
+.center-50 {
   width: 50%;
   margin: 0 auto;
 }
 
-#calibrate-container {
-  cursor: pointer;
+.center-80 {
+  width: 80%;
+  margin: 0 auto;
 }
 
 section {
@@ -51,30 +52,6 @@ section {
 
 .is-shown {
   display: block;
-}
-
-.nav-btn {
-  width: 100%;
-  height: 50px;
-  border: 1px solid #e2e2e2;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.is-active {
-  background: #00508a;
-  color: #fff;
-}
-
-.nav {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  width: 25%;
-  background-color: #f1f1f1;
-  position: fixed;
-  height: 100%;
-  overflow: auto;
 }
 
 /* The switch - the box around the slider */
@@ -136,15 +113,6 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-#cs3 {
-  position: absolute;
-  background-color: orange;
-  font-style: italic bold;
-  font-size: 27;
-  bottom: 100;
-  width: 130;
-  height: 70;
-}
 
 .slidecontainer {
   width: 100%;
@@ -180,4 +148,12 @@ input:checked + .slider:before {
   height: 25px;
   background: #4caf50;
   cursor: pointer;
+}
+
+#settings-container {
+  text-align: center;
+}
+
+label {
+  margin-bottom: 10px;
 }

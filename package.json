@@ -21,5 +21,8 @@
       "target": "nsis"
     },
     "asar": false
+  },
+  "dependencies": {
+    "jquery": "^3.3.1"
   }
 }

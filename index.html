@@ -1,80 +1,71 @@
 <html>
 <title>LipSync User Menu</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="index.css" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
 
 <body>
-  <img src="logo.jpg" width="120" height="60">
-
-  <div style="margin-left:180px">
-    <div class="w3-padding">
-      <h1> </h1>
-    </div>
-
-    <div id="Home" class="w3-container tab" style="display:block">
-      <h2>Cursor Settings</h2>
-      <p id="upload-status" class="hidden">Uploading...</p>
-      <div id="blink-container">
-        <p>
-          <label for="interval">
-            <span>Cursor Speed: </span>
-          </label>
-          
-          <input type="range" id="speed_counter" min="1" max="9" value="5" class="sliderbar"><label id="speed_counter_label"></label>
-          <br></br>
-        </p>
-        </p>
-        <h2>Pressure Sensors</h2>
-        <p>
-
-          <label for="sip_threshold">
-            <span>Sip Threshold: </span>
-          </label>
-          <!--         <input type="text" id="sip_threshold" name="sip_threshold" value="0.5">
-   -->
-          <input type="range" id="sip_threshold" min="1" max="4" value="2" class="sliderbar"><label id="sip_threshold_label"></label>
-        </p>
-        </p>
-        <p>
-          <label for="puff_threshold">
-            <span>Puff Threshold: </span>
-          </label>
-          <input type="range" id="puff_threshold" min="1" max="4" value="2" class="sliderbar"> <label id="puff_threshold_label"></label>
-        </p>
-        </p>
-        <label for="short_sippuff_duration">
-          <span>Duration for Short Sip-puff: </span>
+  <div class="center-50">
+    <p id="upload-status" class="hidden">Uploading, do not use the LipSync!!!</p>
+    <div id="settings-container">
+      <h2>Cursor</h2>
+      <p>
+        <label for="interval">
+          <span>Cursor Speed</span>
         </label>
-
-        <input type="range" id="short_sippuff_duration" min="1" max="4" value="2" class="sliderbar"> <label id="short_sippuff_duration_label"></label>
-        </p>
-        <p>
-          <label for="very_long_sippuff_duration">
-            <span>Duration for Very Long Sip-puff: </span>
-          </label>
-          <input type="range" id="very_long_sippuff_duration" min="5" max="9" value="6" class="sliderbar"> <label id="very_long_sippuff_duration_label"></label>
-        </p>
-
-        <p>
-          <span>
-            <br>Reverse Sip and Puff: </span>
-          <label class="switch">
-            <input id="reversed" type="checkbox">
-
-            <span class="slider round"></span>
-          </label>
-        </p>
-        <p>
-          <button id="flash-btn">Flash</button>
-          <button id="reset-btn">Reset</button>
-      </div>
+        <div id="speed_counter"></div>
+        <label id="speed_counter_label"></label>
+        <br></br>
+      </p>
+      </p>
+      <h2>Pressure Sensors</h2>
+      <p>
+        <label for="sip_threshold">
+          <span>Sip Threshold</span>
+        </label>
+        <input type="range" id="sip_threshold" min="1" max="4" value="2" class="sliderbar">
+        <label id="sip_threshold_label"></label>
+      </p>
+      </p>
+      <p>
+        <label for="puff_threshold">
+          <span>Puff Threshold</span>
+        </label>
+        <input type="range" id="puff_threshold" min="1" max="4" value="2" class="sliderbar">
+        <label id="puff_threshold_label"></label>
+      </p>
+      </p>
+      <label for="short_sippuff_duration">
+        <span>Duration for Short Sip-puff</span>
+      </label>
+      <input type="range" id="short_sippuff_duration" min="1" max="4" value="2" class="sliderbar">
+      <label id="short_sippuff_duration_label"></label>
+      </p>
+      <p>
+        <label for="very_long_sippuff_duration">
+          <span>Duration for Very Long Sip-puff</span>
+        </label>
+        <input type="range" id="very_long_sippuff_duration" min="5" max="9" value="6" class="sliderbar">
+        <label id="very_long_sippuff_duration_label"></label>
+      </p>
+      <p>
+        <span>
+          <br>Reverse Sip and Puff</span>
+        <label class="switch">
+          <input id="reversed" type="checkbox">
+          <span class="slider round"></span>
+        </label>
+      </p>
+      <p>
+        <button id="flash-btn">Flash</button>
+        <button id="reset-btn">Reset</button>
     </div>
   </div>
 
   <div id="flash-modal" class="modal">
     <div class="modal-content">
-      <div class="center">
+      <div class="center-50">
         <p>Keep these settings?</p>
         <p id="flash-countdown"></p>
         <button id="revert" class="modal-btn">Revert</button>
@@ -83,12 +74,11 @@
     </div>
   </div>
 
-
   <script>
     // You can also require other files to run in this process
     require('./renderer.js')
   </script>
-
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 </body>
 
 </html>
