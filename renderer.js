@@ -12,28 +12,40 @@ const ARDUINO_WINDOWS_PATH =
   'C:\\Program Files (x86)\\Arduino\\arduino_debug.exe';
 
 const SETTINGS_CONSTANTS = {
-  interval: 'SPEED_COUNTER_SETTING',
+  speed_counter: 'SPEED_COUNTER_SETTING',
   sip_threshold: 'SIP_THRESHOLD_SETTING',
   puff_threshold: 'PUFF_THRESHOLD_SETTING ',
-  longsip_duration: 'SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING',
-  longpuff_duration: 'SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING ',
+  short_sippuff_duration: 'SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING',
+  very_long_sippuff_duration: 'SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING',
   reversed: 'SIP_PUFF_SETTING'
 };
 const FIRMWAREFILE = 'LipSync_Firmware.ino';
 const DEFAULT_CURSOR_SPEED = 4;
+const DEFAULT_SIP_THRESHOLD = 2;
+const DEFAULT_PUFF_THRESHOLD = 2;
+const DEFAULT_SHORT_SIPPUFF_DURATION = 2;
+const DEFAULT_VERY_LONG_SIPPUFF_DURATION = 6;
+const DEFAULT_REVERSED = 0;
+const initial_settings = {
+  speed_counter: DEFAULT_CURSOR_SPEED,
+  sip_threshold: DEFAULT_SIP_THRESHOLD,
+  puff_threshold: DEFAULT_PUFF_THRESHOLD,
+  short_sippuff_duration: DEFAULT_SHORT_SIPPUFF_DURATION,
+  very_long_sippuff_duration: DEFAULT_VERY_LONG_SIPPUFF_DURATION,
+  reversed: DEFAULT_REVERSED
+};
+
 const COUNTDOWN_TIME = 20;
 // endregion
 
 // region globals
 let timer;
-let settings = {
-  interval: DEFAULT_CURSOR_SPEED
-};
 let flashFlag = false;
 let flags = 0;
 let success = false;
 let points = [];
 let start = false;
+let saved_settings = initial_settings;
 // endregion
 
 // start with default
@@ -42,20 +54,7 @@ reset();
 // region events
 const flashButton = document.getElementById('flash-btn');
 flashButton.addEventListener('click', function() {
-  const interval = document.getElementById('interval-input').value;
-  const sip_threshold = document.getElementById('sip_threshold').value / 4;
-  const puff_threshold = document.getElementById('puff_threshold').value / 4;
-  const longsip_duration = document.getElementById('longsip_duration').value;
-  const longpuff_duration = document.getElementById('longpuff_duration').value;
-  const reversed = document.getElementById('reversed').checked ? 0 : 1;
-  const output = serialize({
-    interval,
-    sip_threshold,
-    puff_threshold,
-    longsip_duration,
-    longpuff_duration,
-    reversed
-  });
+  const output = serialize();
   fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, 'utf8');
   flashFlag = true;
   upload();
@@ -79,69 +78,85 @@ keep.addEventListener('click', function() {
   closeModal();
 });
 
-const dot1 = document.getElementById('one');
-dot1.addEventListener('mouseenter', mouseEnter1);
-dot1.addEventListener('mouseleave', mouseLeave1);
+document.getElementById("reversed").addEventListener("change", rsip_puff);
+document.getElementById("speed_counter").addEventListener("change",update_value);
+document.getElementById("sip_threshold").addEventListener("change",update_value);
+document.getElementById("puff_threshold").addEventListener("change",update_value);
+document.getElementById("short_sippuff_duration").addEventListener("change",update_value);
+document.getElementById("very_long_sippuff_duration").addEventListener("change",update_value);
 
-const dot2 = document.getElementById('two');
-dot2.addEventListener('mouseenter', mouseEnter2);
-dot2.addEventListener('mouseleave', mouseLeave2);
-
-const dot3 = document.getElementById('three');
-dot3.addEventListener('mouseenter', mouseEnter3);
-dot3.addEventListener('mouseleave', mouseLeave3);
-
-const dot4 = document.getElementById('four');
-dot4.addEventListener('mouseenter', mouseEnter4);
-dot4.addEventListener('mouseleave', mouseLeave4);
-
-const calibrateContainer = document.getElementById('calibrate-container');
-const polyline = document.getElementById('polyline');
-calibrateContainer.addEventListener('mousemove', function(event) {
-  if (!start) return;
-  points.push(event.offsetX, event.offsetY);
-  polyline.setAttribute('points', points);
-});
-
-calibrateContainer.addEventListener('mouseup', function() {
-  if (success) return;
-  start = !start;
-  if (start) {
-    document.getElementById('two').style.fill = 'red';
-    document.getElementById('one').style.fill = 'blue';
-    document.getElementById('instruction').innerHTML =
-      'Now move your mouse to the top right dot.';
-    flags++;
-    polyline.setAttribute('points', '');
-    points = [];
-  } else {
-    if (!success) {
-      document.getElementById('instruction').innerHTML =
-        'Failed. Move your mouse to the top left dot.';
-      clear();
-      flags = 0;
-    }
-  }
-});
-
-calibrateContainer.addEventListener('mouseleave', function() {
-  if (start) {
-    start = false;
-    document.getElementById('instruction').innerHTML =
-      'Failed. Move your mouse to the top left dot';
-    clear();
-    flags = 0;
-  }
-});
-
-const navButtons = document.querySelectorAll('.nav-btn');
-navButtons.forEach(btn =>
-  btn.addEventListener('click', navButtonsClickHandler)
-);
 // endregion
 
 // region functions
-function serialize(settings) {
+function updateDOM() {
+  const settings = getSettings();
+  Object.keys(settings)
+    .map(key => {
+      if (key === "reversed") {
+        return;
+      }
+      if (key === "sip_threshold" || key === "puff_threshold") {
+        document.getElementById(`${key}_label`).innerHTML = settings[key] * 4;
+      } else {
+        document.getElementById(`${key}_label`).innerHTML = settings[key];
+      }
+    });
+}
+
+function update_value(event){
+  const setting = event.target.id;
+  document.getElementById(`${setting}_label`).innerHTML = document.getElementById(setting).value;
+}
+
+function rsip_puff() {
+  var pre_st = document.getElementById("sip_threshold").value;
+  var pre_pt = document.getElementById("puff_threshold").value;
+
+  if (document.getElementById("reversed").checked == true) {
+    document.getElementById("sip_threshold").value = pre_pt;
+    document.getElementById("puff_threshold").value = pre_st;
+  } else {
+    document.getElementById("sip_threshold").value = pre_pt;
+    document.getElementById("puff_threshold").value = pre_st;
+  }
+  updateDOM();
+}
+
+function getSettings() {
+  const speed_counter = document.getElementById('speed_counter').value - 1;
+  const sip_threshold = document.getElementById('sip_threshold').value / 4;
+  const puff_threshold = document.getElementById('puff_threshold').value / 4;
+  const short_sippuff_duration = document.getElementById('short_sippuff_duration').value;
+  const very_long_sippuff_duration = document.getElementById('very_long_sippuff_duration').value;
+  const reversed = document.getElementById('reversed').checked ? 0 : 1;
+  return {
+    speed_counter,
+    sip_threshold,
+    puff_threshold,
+    short_sippuff_duration,
+    very_long_sippuff_duration,
+    reversed
+  };
+}
+
+function setSettings({
+    speed_counter,
+    sip_threshold,
+    puff_threshold,
+    short_sippuff_duration,
+    very_long_sippuff_duration,
+    reversed
+  }) {
+  document.getElementById('speed_counter').value = speed_counter;
+  document.getElementById('sip_threshold').value = sip_threshold;
+  document.getElementById('puff_threshold').value = puff_threshold;
+  document.getElementById('short_sippuff_duration').value = short_sippuff_duration;
+  document.getElementById('very_long_sippuff_duration').value = very_long_sippuff_duration;
+  document.getElementById('reversed').value = reversed;
+}
+
+function serialize() {
+  const settings = getSettings();
   return Object.keys(settings)
     .map(key => `#define ${SETTINGS_CONSTANTS[key]} ${settings[key]}`)
     .join('\n');
@@ -169,23 +184,20 @@ function upload() {
     if (output.status === 1) {
       dialog.showErrorBox('Blink', 'Upload failed');
     } else if (flashFlag) {
-      //triggerFailSafe();
+        triggerFailSafe();
     }
     blinkContainer.classList.remove('hidden');
     uploadStatus.classList.add('hidden');
   }, 0);
 }
 
-function reset() {
-  document.getElementById('interval-input').value = DEFAULT_CURSOR_SPEED;
-}
 
 function triggerFailSafe() {
   document.getElementById('flash-modal').style.display = 'block';
   let count = COUNTDOWN_TIME;
   document.getElementById(
     'flash-countdown'
-  ).innerHTML = `Reverting to previous Blink settings in ${count} seconds`;
+  ).innerHTML = `Reverting to previous settings in ${count} seconds`;
   timer = setInterval(() => {
     if (count == 0) {
       closeModal();
@@ -193,7 +205,7 @@ function triggerFailSafe() {
     } else {
       document.getElementById(
         'flash-countdown'
-      ).innerHTML = `Reverting to previous Blink settings in ${--count} seconds`;
+      ).innerHTML = `Reverting to previous settings in ${--count} seconds`;
     }
   }, 1000);
 }
@@ -204,157 +216,21 @@ function closeModal() {
 }
 
 function storeSettings() {
-  settings.interval = document.getElementById('interval-input').value;
+  const settings = getSettings();
+  Object.keys(settings)
+    .map(key => saved_settings[key] = settings[key]);
 }
 
 function revertSettings() {
-  const intervalInput = document.getElementById('interval-input');
-  intervalInput.value = settings.interval;
-  const output = serialize({ interval: intervalInput.value });
+  setSettings(saved_settings);
+  const output = serialize();
   fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, 'utf8');
   flashFlag = false;
   upload();
 }
-
-function mouseEnter1() {
-  dot1.removeEventListener('mouseenter', mouseEnter1);
-  if (!success) {
-    if (flags === 0) {
-      document.getElementById('instruction').innerHTML =
-        'Start the trace with a tap.';
-    } else if (flags === 4) {
-      document.getElementById('instruction').innerHTML = 'Success!';
-      const redo = document.createElement('button');
-      redo.innerHTML = 'Redo';
-      redo.setAttribute('id', 'redo');
-      redo.addEventListener('click', function() {
-        document.getElementById('instruction').innerHTML =
-          'Move your mouse to the top left dot.';
-        clear();
-        success = false;
-        flags = 0;
-        polyline.setAttribute('points', '');
-        points = [];
-      });
-      document.getElementById('instruction').appendChild(redo);
-      success = true;
-      start = false;
-    } else {
-      start = false;
-      document.getElementById('instruction').innerHTML =
-        'Failed. Move your mouse to the top left dot.';
-      clear();
-      flags = 0;
-    }
-  }
-}
-
-function mouseLeave1() {
-  // workaround for bug where mouseenter is fired twice in close succession with trace polyline
-  setTimeout(() => {
-    dot1.addEventListener('mouseenter', mouseEnter1);
-  }, 1000);
-
-  if (!success) {
-    if (flags === 0) {
-      document.getElementById('instruction').innerHTML =
-        'Move your mouse to the top left dot.';
-    }
-  }
-}
-
-function mouseEnter2() {
-  dot2.removeEventListener('mouseenter', mouseEnter2);
-  if (start && !success) {
-    if (flags === 1) {
-      document.getElementById('three').style.fill = 'red';
-      document.getElementById('two').style.fill = 'blue';
-      document.getElementById('instruction').innerHTML =
-        'Now move your mouse to the bottom right dot.';
-      flags++;
-    } else {
-      start = false;
-      document.getElementById('instruction').innerHTML =
-        'Failed. Move your mouse to the top left dot.';
-      clear();
-      flags = 0;
-    }
-  }
-}
-
-function mouseLeave2() {
-  setTimeout(() => {
-    dot2.addEventListener('mouseenter', mouseEnter2);
-  }, 1000);
-}
-
-function mouseEnter3() {
-  dot3.removeEventListener('mouseenter', mouseEnter3);
-  if (start && !success) {
-    if (flags === 2) {
-      document.getElementById('four').style.fill = 'red';
-      document.getElementById('three').style.fill = 'blue';
-      document.getElementById('instruction').innerHTML =
-        'Now move your mouse to the bottom left dot.';
-      flags++;
-    } else {
-      start = false;
-      document.getElementById('instruction').innerHTML =
-        'Failed. Move your mouse to the top left dot.';
-      clear();
-      flags = 0;
-    }
-  }
-}
-
-function mouseLeave3() {
-  setTimeout(() => {
-    dot3.addEventListener('mouseenter', mouseEnter3);
-  }, 1000);
-}
-
-function mouseEnter4() {
-  dot4.removeEventListener('mouseenter', mouseEnter4);
-  if (start && !success) {
-    if (flags === 3) {
-      document.getElementById('four').style.fill = 'blue';
-      document.getElementById('one').style.fill = 'red';
-      document.getElementById('instruction').innerHTML =
-        'Now move your mouse to the top left dot.';
-      flags++;
-    } else {
-      start = false;
-      document.getElementById('instruction').innerHTML =
-        'Failed. Move your mouse to the top left dot.';
-      clear();
-      flags = 0;
-    }
-  }
-}
-
-function mouseLeave4() {
-  setTimeout(() => {
-    dot4.addEventListener('mouseenter', mouseEnter4);
-  }, 1000);
-}
-
-function clear() {
-  document.getElementById('one').style.fill = 'blue';
-  document.getElementById('two').style.fill = 'blue';
-  document.getElementById('three').style.fill = 'blue';
-  document.getElementById('four').style.fill = 'blue';
-}
-
-function navButtonsClickHandler(event) {
-  navButtons.forEach(btn => btn.classList.remove('is-active'));
-  event.target.classList.add('is-active');
-  const sections = document.querySelectorAll('section');
-  sections.forEach(section => section.classList.remove('is-shown'));
-  if (event.target.innerText === 'Home') {
-    document.getElementById('home').classList.add('is-shown');
-  } else {
-    document.getElementById('calibration').classList.add('is-shown');
-  }
+ function reset() {
+  setSettings(initial_settings);
+  updateDOM();
 }
 
 // endregion
