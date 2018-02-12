@@ -110,12 +110,19 @@ input:checked + .round:before {
 label {
   margin-bottom: 10px;
 }
-
+#logo{
+     position: absolute;
+    top: 0px;
+}
 .ui-slider-handle {
   width: 2em !important;
   height: 1.6em !important;
   text-align: center;
   line-height: 1.6em;
+}
+
+.ui-slider-range {
+  background-color: #E84646 !important;
 }
 
 .slider {
@@ -132,10 +139,13 @@ h2 {
   display: inline-block;
   width: 60px;
   margin: 10px;
+  text-align: center;
 }
 
 .setting {
   margin: 20px 0;
+  text-align: left;
+  font-size: 20;
 }
 
 .center-vertical {
@@ -144,14 +154,12 @@ h2 {
   align-items: center;
 }
 
-section {
-  padding: 20px;
-}
+
 
 #keep,
 #flash-btn {
   color: #fff;
-  background: #2196f3;
+  background: #E84646;
   width: 100px;
   height: 40px;
   border: 2px solid #002937;
@@ -162,7 +170,7 @@ section {
 #revert,
 #reset-btn {
   background: #fff;
-  color: #2196f3;
+  color: #E84646;
   width: 100px;
   height: 40px;
   border: 2px solid #002937;
