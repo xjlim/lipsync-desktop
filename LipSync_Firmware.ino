@@ -92,7 +92,6 @@
 #include <Mouse.h>
 #include <math.h>
 #include "settings.h"
-#include <FileIO.h>
 
 //***SETTINGS***//
 #ifndef SPEED_COUNTER_SETTING
@@ -649,11 +648,6 @@ void cursor_speed_value(void) {
   EEPROM.get(2, var);
   delay(5);
   speed_counter = var;
-  FileSystem.begin();
-File f=FileSystem.open("settings.h");
-f.write("SPEED_COUNTER_SETTING = speed_counter");
-  //f.write(SPEED_COUNTER_SETTING = speed_counter);
-  //FileSystem.close();
 }
 
 void increase_cursor_speed(void) {
@@ -964,15 +958,6 @@ void Pressure_Sensor_Initialization(void) {
   sip_threshold = nominal_cursor_value + SIP_THRESHOLD_SETTING;    //Create sip pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
 
   puff_threshold = nominal_cursor_value - PUFF_THRESHOLD_SETTING;   //Create puff pressure threshold value ***Larger values tend to minimize frequency of inadvertent activation
-
-  Serial.println(" ");
-  Serial.println(" --- ");
-  Serial.print("puff_threshold: ");
-  Serial.println(puff_threshold);
-  Serial.print("sip_threshold: ");
-  Serial.println(sip_threshold);
-  Serial.println(" --- ");
-  Serial.println(" ");
 }
 
 //***ARDUINO/GENUINO HID MOUSE INITIALIZATION FUNCTION***//
