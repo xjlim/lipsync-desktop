@@ -551,9 +551,9 @@ electron-publish@19.46.5:
     fs-extra-p "^4.4.4"
     mime "^2.0.3"
 
-electron@^1.7.11:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.3.tgz#001416ea3a25ce594e317cb5531bc41eadd22f7f"
+electron@^1.8.4:
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.4.tgz#cca8d0e6889f238f55b414ad224f03e03b226a38"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"

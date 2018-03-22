@@ -114,8 +114,8 @@
 #define SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING 5
 #endif
 
-#ifndef SIP_PUFF_SETTING
-#define SIP_PUFF_SETTING 1
+#ifndef SIP_PUFF_REVERSED
+#define SIP_PUFF_REVERSED 0
 #endif
 
 //***PIN ASSIGNMENTS***//
@@ -1292,17 +1292,17 @@ void Set_Default(void) {
 }
 
 int is_sipped(double cursor_click) {
-  if (SIP_PUFF_SETTING) {
-    return cursor_click > sip_threshold;
-  }
-
-  return cursor_click < puff_threshold;
-}
-
-int is_puffed(double cursor_click) {
-  if (SIP_PUFF_SETTING) {
+  if (SIP_PUFF_REVERSED) {
     return cursor_click < puff_threshold;
   }
 
   return cursor_click > sip_threshold;
+}
+
+int is_puffed(double cursor_click) {
+  if (SIP_PUFF_REVERSED) {
+    return cursor_click > sip_threshold;
+  }
+
+  return cursor_click < puff_threshold;
 }

@@ -188,3 +188,13 @@ h2 {
 button {
   margin: 0 10px;
 }
+
+.left {
+  float: left;
+  width: 50%;
+}
+
+.right {
+  float: right;
+  width: 50%;
+}

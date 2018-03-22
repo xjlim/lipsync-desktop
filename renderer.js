@@ -14,7 +14,8 @@ const SETTINGS_CONSTANTS = {
   puff_threshold: 'PUFF_THRESHOLD_SETTING ',
   short_sippuff_duration: 'SIPPUFF_SECONDARY_DURATION_THRESHOLD_SETTING',
   very_long_sippuff_duration: 'SIPPUFF_TERTIARY_DURATION_THRESHOLD_SETTING',
-  reversed: 'SIP_PUFF_SETTING'
+  reversed: 'SIP_PUFF_REVERSED',
+  bluetooth_mode: 'BLUETOOTH_MODE'
 };
 const FIRMWAREFILE = 'LipSync_Firmware.ino';
 const DEFAULT_CURSOR_SPEED = 4;
@@ -22,14 +23,16 @@ const DEFAULT_SIP_THRESHOLD = 2;
 const DEFAULT_PUFF_THRESHOLD = 2;
 const DEFAULT_SHORT_SIPPUFF_DURATION = 1;
 const DEFAULT_VERY_LONG_SIPPUFF_DURATION = 5;
-const DEFAULT_REVERSED = 0;
+const DEFAULT_SIP_PUFF_REVERSED = 0;
+const DEFAULT_BLUETOOTH = 0;
 const initial_settings = {
   speed_counter: DEFAULT_CURSOR_SPEED,
   sip_threshold: DEFAULT_SIP_THRESHOLD,
   puff_threshold: DEFAULT_PUFF_THRESHOLD,
   short_sippuff_duration: DEFAULT_SHORT_SIPPUFF_DURATION,
   very_long_sippuff_duration: DEFAULT_VERY_LONG_SIPPUFF_DURATION,
-  reversed: DEFAULT_REVERSED
+  reversed: DEFAULT_SIP_PUFF_REVERSED,
+  bluetooth_mode: DEFAULT_BLUETOOTH
 };
 
 const COUNTDOWN_TIME = 20;
@@ -44,7 +47,7 @@ let saved_settings = Object.assign({}, initial_settings);
 
 window.$ = window.jQuery = require('jquery');
 $(function() {
-  var speed_counter_handle = $('#speed_counter');
+  const speed_counter_handle = $('#speed_counter');
   $('#speed_counter_slider').slider({
     create: function() {
       speed_counter_handle.text($(this).slider('value'));
@@ -60,7 +63,7 @@ $(function() {
     value: 4
   });
 
-  var sip_threshold_handle = $('#sip_threshold');
+  const sip_threshold_handle = $('#sip_threshold');
   $('#sip_threshold_slider').slider({
     create: function() {
       sip_threshold_handle.text($(this).slider('value'));
@@ -76,7 +79,7 @@ $(function() {
     value: 2
   });
 
-  var puff_threshold_handle = $('#puff_threshold');
+  const puff_threshold_handle = $('#puff_threshold');
   $('#puff_threshold_slider').slider({
     create: function() {
       puff_threshold_handle.text($(this).slider('value'));
@@ -150,18 +153,27 @@ keep.addEventListener('click', function() {
   closeModal();
 });
 
-function rsip_puff() {
-  var pre_st = document.getElementById('sip_threshold').value;
-  var pre_pt = document.getElementById('puff_threshold').value;
-
-  if (document.getElementById('reversed').checked == true) {
-    document.getElementById('sip_threshold').value = pre_pt;
-    document.getElementById('puff_threshold').value = pre_st;
-  } else {
-    document.getElementById('sip_threshold').value = pre_pt;
-    document.getElementById('puff_threshold').value = pre_st;
-  }
-}
+const reversed = document.getElementById('reversed');
+reversed.addEventListener('click', function() {
+  const {
+    sip_threshold,
+    puff_threshold,
+    reversed,
+    bluetooth_mode,
+    short_sippuff_duration,
+    very_long_sippuff_duration,
+    speed_counter
+  } = getSettings();
+  setSettings({
+    sip_threshold: reversed ? puff_threshold * 4 : sip_threshold * 4,
+    puff_threshold: reversed ? sip_threshold * 4 : puff_threshold * 4,
+    reversed,
+    bluetooth_mode,
+    short_sippuff_duration,
+    very_long_sippuff_duration,
+    speed_counter
+  });
+});
 
 function getSettings() {
   $('#speed_counter_slider').slider('value');
@@ -176,14 +188,17 @@ function getSettings() {
     'values',
     1
   );
-  const reversed = document.getElementById('reversed').checked ? 0 : 1;
+  const reversed = document.getElementById('reversed').checked ? 1 : 0;
+  const bluetooth_mode = document.getElementById('bluetooth_mode').checked ? 1 : 0;
+
   return {
     speed_counter,
     sip_threshold,
     puff_threshold,
     short_sippuff_duration,
     very_long_sippuff_duration,
-    reversed
+    reversed,
+    bluetooth_mode
   };
 }
 
@@ -193,7 +208,8 @@ function setSettings({
   puff_threshold,
   short_sippuff_duration,
   very_long_sippuff_duration,
-  reversed
+  reversed,
+  bluetooth_mode
 }) {
   $('#speed_counter_slider').slider('value', speed_counter);
   $('#sip_threshold_slider').slider('value', sip_threshold);
@@ -201,6 +217,7 @@ function setSettings({
   $('#sippuff_duration_slider').slider('values', 0, short_sippuff_duration);
   $('#sippuff_duration_slider').slider('values', 1, very_long_sippuff_duration);
   document.getElementById('reversed').checked = reversed;
+  document.getElementById('bluetooth_mode').checked = bluetooth_mode;
 }
 
 function serialize() {
@@ -272,7 +289,7 @@ function revertSettings() {
   const output = serialize();
   fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, 'utf8');
   flashFlag = false;
-  upload();
+  // upload();
 }
 
 function reset() {
