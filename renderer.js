@@ -289,7 +289,7 @@ function revertSettings() {
   const output = serialize();
   fs.writeFileSync(path.resolve(__dirname, HEADERFILE), output, 'utf8');
   flashFlag = false;
-  // upload();
+  upload();
 }
 
 function reset() {
