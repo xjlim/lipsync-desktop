@@ -118,6 +118,10 @@
 #define SIP_PUFF_REVERSED 0
 #endif
 
+#ifndef BLUETOOTH_MODE
+#define BLUETOOTH_MODE 0
+#endif
+
 //***PIN ASSIGNMENTS***//
 
 #define MODE_SELECT 12                            // LipSync Mode Select - USB mode (comm_mode = 0; jumper on) or Bluetooth mode (comm_mode = 1; jumper off) - digital input pin 12 (internally pulled-up)
