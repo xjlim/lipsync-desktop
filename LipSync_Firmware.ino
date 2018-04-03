@@ -130,8 +130,8 @@ int init_counter_A = 0;                           // serial port initialization 
 int init_counter_B = 0;                           // serial port initialization counter
 
 // Cursor Variables
-int default_cursor_speed = 30;
-int delta_cursor_speed = 5;
+int default_cursor_speed = 6;
+int delta_cursor_speed = 1;
 
 int cursor_delay;
 float cursor_factor;
@@ -1122,6 +1122,11 @@ void Bluetooth_Initialization(void) {
   Serial.println(F("Enable HID Service (including sensor): "));
   if (! ble.sendCommandCheckOK(F( "AT+BleHIDEn=On"  ))) {
     error(F("Failed to enable HID (firmware >=0.6.6?)"));
+  }
+  
+  Serial.println(F("Setting device name to 'LipSync': "));
+  if (! ble.sendCommandCheckOK(F( "AT+GAPDEVNAME=LipSync" )) ) {
+    error(F("Could not set device name?"));
   }
 }
 
